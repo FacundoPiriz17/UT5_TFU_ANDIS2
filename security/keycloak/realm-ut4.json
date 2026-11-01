@@ -1,0 +1,164 @@
+{
+  "realm": "andis-ut4",
+  "enabled": true,
+  "displayName": "ANDIS UT4 - Laboratorio",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 60,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin"
+      },
+      {
+        "name": "user"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "andis-api",
+      "enabled": true,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "andis-swagger",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "defaultClientScopes": [
+        "roles",
+        "profile",
+        "email",
+        "basic"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audiencia-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "andis-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ],
+      "redirectUris": [
+        "http://localhost:8000/docs/oauth2-redirect",
+        "http://localhost:18000/docs/oauth2-redirect",
+        "https://oauth.pstmn.io/v1/callback",
+        "https://oauth.pstmn.io/v1/browser-callback"
+      ],
+      "webOrigins": [
+        "http://localhost:8000",
+        "http://localhost:18000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "andis-frontend",
+      "name": "Frontend de demo (React)",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "defaultClientScopes": [
+        "roles",
+        "profile",
+        "email",
+        "basic"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audiencia-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "andis-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ],
+      "redirectUris": [
+        "http://localhost:3200/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3200",
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "demo@adaii.local",
+      "email": "demo@adaii.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Usuario",
+      "lastName": "Demo",
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "segundo@adaii.local",
+      "email": "segundo@adaii.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Segundo",
+      "lastName": "Demo",
+      "realmRoles": [
+        "user"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Demo123!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "admin@adaii.local",
+      "email": "admin@adaii.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Administrador",
+      "lastName": "Demo",
+      "realmRoles": [
+        "admin"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "AdminDemo123!",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

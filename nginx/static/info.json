@@ -1,0 +1,5 @@
+{
+  "recurso": "info.json",
+  "servido_por": "gateway nginx (sin pasar por FastAPI)",
+  "patron": "Gateway Offloading"
+}

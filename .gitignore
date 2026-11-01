@@ -1,0 +1,95 @@
+# Bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing / coverage
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+nosetests.xml
+.tox/
+.nox/
+
+# Static analysis / linters
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# Python packaging
+build/
+dist/
+.eggs/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+
+.venv/
+venv/
+env/
+ENV/
+
+.env
+.env.*
+
+# Keep environment templates in the repository
+!.env.example
+!.env.*.example
+
+# JetBrains (PyCharm / IntelliJ / Rider)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Code Runner
+tempCodeRunnerFile.py
+
+# Vim / editors
+*.swp
+*.swo
+*~
+
+
+*.log
+logs/
+deployment_logs/
+
+
+.deploy/
+
+*.tmp
+*.temp
+*.bak
+*.old
+.cache/
+
+
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+
+# Frontend
+node_modules/
+config/*.lock

@@ -1,0 +1,9 @@
+{
+  "revision": 1,
+  "settings": {
+    "cache_ttl_seconds": 60,
+    "winter_discount_percent": 50,
+    "purchases_enabled": true,
+    "store_notice": "Bienvenido a la tienda de juegos"
+  }
+}
