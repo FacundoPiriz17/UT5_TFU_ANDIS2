@@ -1,5 +1,3 @@
-USE db_games;
-
 CREATE TABLE Persona (
     EmailPersona VARCHAR(100) PRIMARY KEY,
     NombrePersona VARCHAR(30) NOT NULL,

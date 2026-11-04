@@ -12,6 +12,7 @@ import FederatedIdentity from './pages/FederatedIdentity';
 import GatewayOffloading from './pages/GatewayOffloading';
 import Despliegue from './pages/Despliegue';
 import Configuracion from './pages/Configuracion';
+import Resiliencia from './pages/Resiliencia';
 import Antiguas from './pages/Antiguas';
 
 const PAGINAS = {
@@ -25,6 +26,9 @@ const PAGINAS = {
   offloading: GatewayOffloading,
   deploy: Despliegue,
   configuration: Configuracion,
+  resilience: Resiliencia,
+  'demos-antiguas': Antiguas,
+  'ut4-blue-green': () => <Antiguas demo="ut4-blue-green" />,
   'ut2-tacticas': () => <Antiguas demo="ut2-tacticas" />,
   'ut2-rollback': () => <Antiguas demo="ut2-rollback" />,
   'ut3-componentes': () => <Antiguas demo="ut3-componentes" />,

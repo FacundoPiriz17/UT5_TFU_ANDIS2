@@ -1,12 +1,11 @@
 """Autenticación federada y autorización local sobre claims verificados."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from sqlalchemy.orm import Session
 
-from app.models import Persona
 from security.oidc import issuer, verificar_token_federado
 
 oauth2 = OAuth2AuthorizationCodeBearer(
@@ -22,6 +21,7 @@ class Identidad:
     sub: str
     email: str
     roles: frozenset[str]
+    access_token: str = field(default="", repr=False)
 
     @property
     def es_admin(self) -> bool:
@@ -42,7 +42,7 @@ def obtener_usuario_actual(token: str | None = Depends(oauth2)) -> Identidad:
     roles = realm.get("roles", []) if isinstance(realm, dict) else []
     if not isinstance(roles, list) or any(not isinstance(role, str) for role in roles):
         raise HTTPException(401, "Roles inválidos", headers={"WWW-Authenticate": "Bearer"})
-    identidad = Identidad(payload["sub"], payload["email"], frozenset(roles))
+    identidad = Identidad(payload["sub"], payload["email"], frozenset(roles), token)
     if not identidad.roles.intersection({"admin", "user"}):
         raise HTTPException(403, "Rol de aplicación requerido")
     return identidad
@@ -55,6 +55,7 @@ def requerir_admin(usuario: Identidad = Depends(obtener_usuario_actual)) -> Iden
 
 
 def autorizar_persona(usuario: Identidad, email: str, db: Session) -> None:
+    from services.comercial.models import Persona
     # Nunca se obtiene la identidad del correo enviado en el body o URL.
     if not usuario.es_admin and usuario.email != email:
         raise HTTPException(403, "No puede acceder a otra persona")

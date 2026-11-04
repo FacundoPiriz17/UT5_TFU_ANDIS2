@@ -1,49 +1,16 @@
-    # Python cache & bytecode
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-
-# Virtual environments
-venv/
-.env/
-.env.prod
-*.env
-
-# Development & build files
-.DS_Store
-*.log
-*.tmp
-*.bak
-
-# Git
-.git/
-.gitignore
-
-# Docker
-Dockerfile
-docker-compose.yml
-docker-compose.prod.yml
-
-# IDE / Editor
-.vscode/
-.idea/
-*.swp
-
-# Test / coverage
-.pytest_cache/
-.coverage
-htmlcov/
-tests/
-
-# OS / misc
-Thumbs.db
+.git
+.venv
+venv
+**/node_modules
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.tmp
 .env
-.deploy/
-deployment_logs/
-.venv/
-
-# Frontend (tiene su propia imagen)
-frontend/
-config/
+.env.*
+!.env.example
+**/*.log
+deployment_logs
+logs
+frontend/dist
+docs

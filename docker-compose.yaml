@@ -1,165 +1,106 @@
-name: ut4_segrend
+name: ut5_service_based
 
-x-api-common: &api-common
-  image: ${API_IMAGE:-ut4-segrend-api:1.0}
-
-  env_file:
-    - .env
-
-  environment: &api-environment
+x-business: &business
+  environment: &business-env
     MYSQL_HOST: db
     MYSQL_PORT: 3306
     MYSQL_DATABASE: ${MYSQL_DATABASE:-db_games}
     MYSQL_USER: ${MYSQL_USER:-db_user}
     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-db_password}
-    OIDC_ISSUER: ${OIDC_ISSUER:-http://localhost:8081/realms/andis-ut4}
+    OIDC_ISSUER: ${OIDC_ISSUER:-http://localhost:${KEYCLOAK_PORT:-8155}/realms/andis-ut4}
     OIDC_AUDIENCE: andis-api
     OIDC_JWKS_URL: http://keycloak:8080/realms/andis-ut4/protocol/openid-connect/certs
     CONFIG_PATH: /app/config/settings.json
-    DEPLOYMENT_SLOT: blue
-    API_INSTANCES: api1:8000,api2:8000
-
-    AUDIT_LOG_PATH: /app/logs/operaciones.txt
-
-    # Cache-aside compartido entre instancias
     REDIS_HOST: redis
     REDIS_PORT: 6379
-
+    REDIS_TIMEOUT_SECONDS: ${REDIS_TIMEOUT_SECONDS:-0.1}
+    AUDIT_LOG_PATH: /app/logs/operaciones.txt
   depends_on:
     db:
       condition: service_healthy
-    redis:
-      condition: service_healthy
     keycloak:
       condition: service_healthy
-
-  expose:
-    - '8000'
-
   volumes:
-    - audit_logs:/app/logs
-    # Se monta el directorio: permite reemplazar settings.json de forma atómica.
     - ./config:/app/config
-
   healthcheck:
-    test:
-      [
-        'CMD',
-        'python',
-        '-c',
-        "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
-      ]
+    test: ['CMD', 'python', '-c', "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live',timeout=2)"]
     interval: 5s
     timeout: 3s
-    retries: 5
-    start_period: 5s
-
+    retries: 10
+    start_period: 10s
   restart: unless-stopped
 
 services:
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.1.4
-    command: start-dev --import-realm
+  catalogo:
+    <<: *business
+    image: ut5-catalogo:${CATALOGO_VERSION:-v1}
+    build:
+      context: .
+      dockerfile: services/catalogo/Dockerfile
+      args:
+        API_VERSION: ${CATALOGO_VERSION:-v1}
     environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-AdminDemo123!}
-      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8081}
-      KC_HEALTH_ENABLED: 'true'
+      <<: *business-env
+      SERVICE_NAME: catalogo
+      CATALOGO_PUBLIC_SOAP_URL: ${CATALOGO_PUBLIC_SOAP_URL:-http://localhost:${API_PORT:-8055}/soap/catalogo}
     ports:
-      - '127.0.0.1:${KEYCLOAK_PORT:-8081}:8080'
+      - '127.0.0.1:${CATALOGO_PORT:-8056}:8000'
     volumes:
-      - keycloak_data:/opt/keycloak/data
-      - ./security/keycloak/realm-ut4.json:/opt/keycloak/data/import/realm-ut4.json:ro
-    healthcheck:
-      test: ['CMD', 'bash', '-c', 'exec 3<>/dev/tcp/127.0.0.1/9000; printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3; head -n 1 <&3 | grep -q "200"']
-      interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 30s
-    restart: unless-stopped
+      - ./config:/app/config
+      - catalogo_audit:/app/logs
 
-  api1:
-    <<: *api-common
+  comercial:
+    <<: *business
+    image: ut5-comercial:${COMERCIAL_VERSION:-v1}
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: services/comercial/Dockerfile
       args:
-        API_VERSION: ${BLUE_VERSION:-1.0}
+        API_VERSION: ${COMERCIAL_VERSION:-v1}
     environment:
-      <<: *api-environment
-      INSTANCE_NAME: api1.0
-
-  api2:
-    <<: *api-common
-    pull_policy: never
-    environment:
-      <<: *api-environment
-      INSTANCE_NAME: api2.0
-
-  api-green1:
-    <<: *api-common
-    image: ${GREEN_IMAGE:-ut4-segrend-api-green:2.0}
-    build:
-      context: .
-      dockerfile: dockerfile
-      args:
-        API_VERSION: ${GREEN_VERSION:-2.0}
-    environment:
-      <<: *api-environment
-      INSTANCE_NAME: green1.0
-      DEPLOYMENT_SLOT: green
-      API_INSTANCES: api-green1:8000,api-green2:8000
-
-  api-green2:
-    <<: *api-common
-    image: ${GREEN_IMAGE:-ut4-segrend-api-green:2.0}
-    pull_policy: never
-    environment:
-      <<: *api-environment
-      INSTANCE_NAME: green2.0
-      DEPLOYMENT_SLOT: green
-      API_INSTANCES: api-green1:8000,api-green2:8000
+      <<: *business-env
+      SERVICE_NAME: comercial
+      CATALOGO_SOAP_URL: ${CATALOGO_SOAP_URL:-http://catalogo:8000/soap/catalogo}
+      CATALOGO_HTTP_URL: ${CATALOGO_HTTP_URL:-http://catalogo:8000}
+      SOAP_CONNECT_TIMEOUT: ${SOAP_CONNECT_TIMEOUT:-0.35}
+      SOAP_READ_TIMEOUT: ${SOAP_READ_TIMEOUT:-0.7}
+      SOAP_TOTAL_BUDGET: ${SOAP_TOTAL_BUDGET:-3}
+      SOAP_MAX_ATTEMPTS: ${SOAP_MAX_ATTEMPTS:-3}
+      SOAP_RETRY_BACKOFF: ${SOAP_RETRY_BACKOFF:-0.1}
+      CIRCUIT_FAILURE_THRESHOLD: ${CIRCUIT_FAILURE_THRESHOLD:-3}
+      CIRCUIT_RECOVERY_SECONDS: ${CIRCUIT_RECOVERY_SECONDS:-5}
+    # No depende del arranque ni del health de Catálogo o Redis.
+    ports:
+      - '127.0.0.1:${COMERCIAL_PORT:-8057}:8000'
+    volumes:
+      - ./config:/app/config
+      - comercial_audit:/app/logs
 
   nginx:
     build: ./nginx
-    image: ut4-segrend-gateway:1.0
+    image: ut5-gateway:v1
+    ports:
+      - '127.0.0.1:${API_PORT:-8055}:80'
+    depends_on:
+      comercial:
+        condition: service_started
+      catalogo:
+        condition: service_started
     healthcheck:
-      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1/health']
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1/gateway/health']
       interval: 5s
       timeout: 3s
-      retries: 5
-
-    ports:
-      - '${API_PORT:-8000}:80'
-
-    volumes:
-      # Gateway: throttling + offloading (compresión, estáticos, 429 centralizado)
-      - ./nginx/default.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/static:/var/www/static:ro
-      - gateway_state:/etc/nginx/deployment
-
-    depends_on:
-      api1:
-        condition: service_healthy
-      api2:
-        condition: service_healthy
-      api-green1:
-        condition: service_healthy
-      api-green2:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
+      retries: 10
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_KEYCLOAK_URL: http://localhost:${KEYCLOAK_PORT:-8081}
-    image: ut4-segrend-frontend:1.0
+        VITE_KEYCLOAK_URL: http://localhost:${KEYCLOAK_PORT:-8155}
+    image: ut5-frontend:v1
     ports:
-      - '${FRONTEND_PORT:-3200}:80'
+      - '127.0.0.1:${FRONTEND_PORT:-3255}:80'
     depends_on:
       nginx:
         condition: service_healthy
@@ -167,46 +108,56 @@ services:
 
   db:
     image: mysql:8.4
-
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-db_games}
       MYSQL_USER: ${MYSQL_USER:-db_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-db_password}
-
     volumes:
       - mysqldata:/var/lib/mysql
       - ./bd/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./bd/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
-
     healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent && mysql -h localhost -u root -p$$MYSQL_ROOT_PASSWORD -D $$MYSQL_DATABASE -e 'SELECT 1 FROM Login LIMIT 1' --silent",
-        ]
+      test: ['CMD-SHELL', 'mysql -h localhost -u root -p$$MYSQL_ROOT_PASSWORD -D $$MYSQL_DATABASE -e "SELECT 1 FROM Persona LIMIT 1" --silent']
       interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 15s
-
+      retries: 30
+      start_period: 20s
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-
     command: redis-server --save "" --appendonly no --maxmemory 64mb --maxmemory-policy allkeys-lru
-
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 5
+    restart: unless-stopped
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.4
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-AdminDemo123!}
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8155}
+      KC_HEALTH_ENABLED: 'true'
+    ports:
+      - '127.0.0.1:${KEYCLOAK_PORT:-8155}:8080'
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./security/keycloak/realm-ut4.json:/opt/keycloak/data/import/realm-ut4.json:ro
+    healthcheck:
+      test: ['CMD', 'bash', '-c', 'exec 3<>/dev/tcp/127.0.0.1/9000; printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3; head -n 1 <&3 | grep -q "200"']
+      interval: 5s
+      timeout: 3s
+      retries: 40
+      start_period: 30s
     restart: unless-stopped
 
 volumes:
   mysqldata:
-  audit_logs:
   keycloak_data:
-  gateway_state:
+  catalogo_audit:
+  comercial_audit:

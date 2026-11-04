@@ -1,3 +1,4 @@
+"""Histórico UT4: promoción del backend completo; no se incluye en UT5."""
 import json
 import os
 from typing import Literal

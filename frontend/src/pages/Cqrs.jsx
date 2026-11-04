@@ -138,8 +138,8 @@ export default function Cqrs() {
     <div className="page">
       <EncabezadoPatron id="cqrs" atributo="Rendimiento">
         El módulo Compras separa el modelo que modifica el estado del que lo consulta. Los comandos trabajan con entidades ORM dentro de
-        una transacción; las consultas proyectan columnas directamente a DTOs de solo lectura, que además pueden cachearse y escalarse
-        de forma independiente.
+        una transacción; las consultas proyectan columnas a DTOs de lectura. En UT5 esas consultas permanecen en Comercial,
+        mientras que crear una compra requiere validar el juego por SOAP.
       </EncabezadoPatron>
 
       <RequiereLogin><Contenido /></RequiereLogin>
@@ -147,16 +147,16 @@ export default function Cqrs() {
       <div className="grid grid-2">
         <Card titulo="Cómo mejora el rendimiento">
           <ComoFunciona items={[
-            'Las queries no cargan entidades completas ni abren unidades de trabajo: un SELECT con las columnas necesarias y mapeo directo a CompraLectura.',
+            'Las queries seleccionan las columnas necesarias y las convierten a CompraLectura sin abrir una transacción de escritura.',
             'Las agregaciones (cantidad y total gastado) se resuelven en MySQL con COUNT/SUM en lugar de traer filas y sumar en Python.',
-            'Al no tener efectos colaterales, el lado de lectura es seguro de cachear (Cache-Aside) y de dirigir a réplicas de lectura.',
+            'Las lecturas de compras usan caché propia y no necesitan consultar el servicio Catálogo.',
             'El lado de escritura concentra validaciones, Strategy de precios, la transacción Compra + Copia y la invalidación de cache.',
           ]} />
         </Card>
         <Card titulo="Prueba empírica">
           <p className="small">1. Ejecutar un comando y observar en la consola de tráfico que la consulta posterior es <b>MISS</b> (fue invalidada) y la siguiente <b>HIT</b>.</p>
           <p className="small">2. Crear la misma compra dos veces: el comando responde <b>409</b>, la consulta no cambia.</p>
-          <p className="small">3. Medir con carga (ab/k6/JMeter) GET /compras vs POST /compras: las lecturas escalan sin bloquear a las escrituras.</p>
+          <p className="small">3. Con esta página ya cargada, detener Catálogo y refrescar las consultas: deben continuar. Intentar comprar un juego no adquirido devuelve 503 sin registrar la adquisición. Reiniciar Catálogo al terminar.</p>
         </Card>
       </div>
     </div>

@@ -80,8 +80,8 @@ export default function Throttling() {
     <div className="page">
       <EncabezadoPatron id="throttling" atributo="Disponibilidad">
         El gateway controla el consumo de recursos por cliente: acepta hasta 10 peticiones por segundo por IP, tolera un
-        pico de hasta 20 peticiones extra (burst) y rechaza el resto con <code>429 Too Many Requests</code>. Un cliente abusivo no puede
-        saturar a las réplicas y el servicio sigue disponible para los demás.
+        pico de hasta 20 peticiones extra (burst) y rechaza el resto con <code>429 Too Many Requests</code>.
+        Esto reduce la carga que llega a los servicios durante una ráfaga.
       </EncabezadoPatron>
 
       <div className="grid grid-2">
@@ -125,8 +125,8 @@ export default function Throttling() {
 
       {rafaga && rafaga.rechazadas === 0 && (
         <Aviso tipo="warn">
-          No hubo rechazos. Verificá que el gateway use <code>nginx/default.conf</code> (montado en <code>docker-compose.yaml</code>) y
-          recreá el contenedor con <code>docker compose up -d --force-recreate nginx</code>.
+          No hubo rechazos. La configuración <code>nginx/default.conf</code> se copia a la imagen mediante <code>nginx/Dockerfile</code>.
+          Si la modificaste, reconstruí la imagen y actualizá el gateway con <code>docker compose up -d --build --no-deps nginx</code>.
         </Aviso>
       )}
 
@@ -136,14 +136,15 @@ export default function Throttling() {
             <><code>limit_req_zone $binary_remote_addr rate=10r/s</code>: algoritmo <i>leaky bucket</i> por IP en memoria compartida (10 MB).</>,
             <><code>burst=20 nodelay</code>: tolera picos cortos legítimos sin agregar latencia; lo que supera el pico se rechaza al instante.</>,
             <><code>limit_req_status 429</code> + <code>error_page</code>: el exceso se corta en el gateway con un JSON uniforme, sin consumir CPU ni conexiones de MySQL en las APIs.</>,
-            'Resultado: la capacidad de las réplicas queda reservada para el tráfico legítimo, evitando que una sobrecarga provoque la caída total del servicio.',
+            'Resultado: el gateway reduce las solicitudes que llegan a los servicios y ayuda a proteger su capacidad ante ráfagas de tráfico.',
           ]} />
         </Card>
         <Card titulo="Prueba empírica por consola">
           <p className="small">Linux/macOS: 60 peticiones en paralelo y conteo de códigos de estado (en Git Bash de Windows los procesos arrancan demasiado lento para superar el límite; usar este panel).</p>
-          <Comando>{'seq 60 | xargs -P 60 -I{} curl -s -o /dev/null -w "%{http_code}\\n" http://localhost:8000/health | sort | uniq -c'}</Comando>
+          <Comando>{'seq 60 | xargs -P 60 -I{} curl -s -o /dev/null -w "%{http_code}\\n" http://localhost:8055/health | sort | uniq -c'}</Comando>
+          <p className="small">El comando usa el puerto predeterminado del gateway UT5: 8055. Si cambiaste API_PORT, usá ese valor.</p>
           <p className="small">Respuesta del gateway ante el exceso:</p>
-          <Json data={ejemplo429 ?? { error: 'Too Many Requests', message: 'Has excedido el límite de peticiones' }} alto={120} />
+          <Json data={ejemplo429 ?? { detail: 'Has excedido el límite de peticiones' }} alto={120} />
         </Card>
       </div>
     </div>

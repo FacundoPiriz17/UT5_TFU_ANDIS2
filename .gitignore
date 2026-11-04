@@ -93,3 +93,4 @@ Desktop.ini
 # Frontend
 node_modules/
 config/*.lock
+.tmp/

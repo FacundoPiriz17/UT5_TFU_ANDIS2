@@ -1,5 +1,3 @@
-USE db_games;
-
 -- Perfiles locales de las identidades federadas definidas en Keycloak.
 -- INSERT IGNORE permite aplicar el seed sin sobrescribir datos existentes.
 INSERT IGNORE INTO Persona (

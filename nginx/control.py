@@ -1,3 +1,7 @@
+"""Histórico UT4: control Blue/Green. No se copia ni se ejecuta en UT5.
+
+Para reproducirlo usar el commit registrado en scripts/ut4-baseline.json.
+"""
 """Control interno del gateway: promoción Blue/Green sin acceso al socket Docker."""
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone

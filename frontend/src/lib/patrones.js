@@ -1,4 +1,4 @@
-// Catálogo de patrones de la UT4 implementados en el proyecto.
+// Catálogo de patrones de UT5 implementados en el proyecto.
 export const GRUPOS = {
   disponibilidad: { nombre: 'Disponibilidad', color: 'green' },
   rendimiento: { nombre: 'Rendimiento', color: 'blue' },
@@ -8,12 +8,13 @@ export const GRUPOS = {
 };
 
 export const PATRONES = [
+  { id: 'resilience', nombre: 'Circuit Breaker y Retry', grupo: 'disponibilidad', resumen: 'La consulta SOAP tiene tiempos máximos, reintentos acotados y un circuito persistente por proceso.', archivos: ['services/comercial/catalog_client.py', 'services/comercial/resilience.py', 'contracts/catalogo-v1.wsdl'] },
   {
     id: 'health',
     nombre: 'Health Endpoint Monitoring',
     grupo: 'disponibilidad',
-    resumen: 'Endpoints /health, /health/live y /health/ready exponen el estado de cada réplica y sus dependencias.',
-    archivos: ['app/main.py', 'docker-compose.yaml (healthcheck)'],
+    resumen: 'Endpoints /health, /health/live y /health/ready exponen el estado de cada servicio y sus dependencias.',
+    archivos: ['app/service_health.py', 'docker-compose.yaml (healthcheck)'],
   },
   {
     id: 'throttling',
@@ -27,14 +28,14 @@ export const PATRONES = [
     nombre: 'Cache-Aside',
     grupo: 'rendimiento',
     resumen: 'Las lecturas consultan Redis primero; ante un MISS cargan de MySQL y guardan con TTL. Las escrituras invalidan.',
-    archivos: ['app/cache.py', 'app/routers/juegos.py', 'app/routers/biblioteca.py'],
+    archivos: ['app/cache.py', 'services/catalogo/routers.py', 'services/comercial/biblioteca.py'],
   },
   {
     id: 'cqrs',
     nombre: 'CQRS',
     grupo: 'rendimiento',
     resumen: 'Compras separa comandos (transacción + Strategy + invalidación) de consultas (proyecciones SQL a DTO).',
-    archivos: ['app/services/compras_commands.py', 'app/services/compras_queries.py'],
+    archivos: ['services/comercial/compras_commands.py', 'services/comercial/compras_queries.py'],
   },
   {
     id: 'identity',
@@ -47,23 +48,43 @@ export const PATRONES = [
     id: 'offloading',
     nombre: 'Gateway Offloading',
     grupo: 'seguridad',
-    resumen: 'Nginx asume compresión, estáticos, límite de tasa y balanceo, quitando esas tareas transversales a FastAPI.',
+    resumen: 'Nginx asume compresión, estáticos, límite de tasa y enrutamiento por servicio, quitando esas tareas transversales a FastAPI.',
     archivos: ['nginx/default.conf', 'nginx/static/'],
   },
   {
     id: 'deploy',
-    nombre: 'Blue/Green Deployment',
+    nombre: 'Despliegue independiente',
     grupo: 'despliegue',
-    resumen: 'Dos versiones del backend conviven. Se verifica el destino y Nginx cambia el tráfico sin reconstruir el frontend.',
-    archivos: ['docker-compose.yaml', 'nginx/control.py', 'app/routers/deployment.py'],
+    resumen: 'Catálogo y Comercial tienen imágenes y despliegues propios. Un cambio compatible de Catálogo conserva la unidad comercial.',
+    archivos: ['docker-compose.yaml', 'services/catalogo/Dockerfile', 'services/comercial/Dockerfile'],
   },
   {
     id: 'configuration',
     nombre: 'External Configuration Store',
     grupo: 'modificabilidad',
-    resumen: 'Un JSON compartido cambia descuentos, compras y TTL en todas las réplicas sin recompilar ni reiniciar.',
+    resumen: 'Un JSON compartido cambia descuentos, compras y TTL en ambos servicios sin recompilar ni reiniciar.',
     archivos: ['config/settings.json', 'app/configuration.py', 'app/routers/configuration.py'],
   },
 ];
 
 export const patron = (id) => PATRONES.find((p) => p.id === id);
+
+// Health, Cache-Aside y CQRS se reutilizan para observar las fronteras de UT5.
+const IDS_UT5 = new Set(['resilience', 'deploy', 'health', 'cache', 'cqrs']);
+export const PATRONES_UT5 = PATRONES.filter((p) => IDS_UT5.has(p.id));
+export const DEMOS_ANTIGUAS = [
+  { unidad: 'TFU4 · Patrones', items: [
+    ...PATRONES.filter((p) => !IDS_UT5.has(p.id)).map((p) => [p.id, p.nombre]),
+    ['ut4-blue-green', 'Blue/Green del monolito'],
+  ] },
+  { unidad: 'TFU3 · Soluciones', items: [
+    ['ut3-componentes', 'Componentes y contenedores'],
+    ['ut3-balanceo', 'Escalabilidad horizontal'],
+    ['ut3-stateless', 'Servicios sin estado'],
+    ['ut3-acid', 'Transacciones ACID'],
+  ] },
+  { unidad: 'TFU2 · Tácticas', items: [
+    ['ut2-tacticas', 'Strategy y auditoría'],
+    ['ut2-rollback', 'Rollback'],
+  ] },
+];

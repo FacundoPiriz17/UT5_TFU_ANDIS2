@@ -102,6 +102,7 @@ function Contenido({ settings }) {
   const cargar = useCallback(async () => {
     const [c, b] = await Promise.all([api('/juegos'), api('/biblioteca')]);
     if (c.ok) setCatalogo(c.data);
+    else setMensaje({ tipo: 'err', texto: `Catálogo: ${mensajeError(c)}` });
     if (b.ok) setBiblioteca(b.data);
     else setMensaje({ tipo: 'err', texto: `Biblioteca: ${mensajeError(b)}` });
   }, []);
@@ -126,7 +127,7 @@ function Contenido({ settings }) {
     <>
       {mensaje && <Aviso tipo={mensaje.tipo}>{mensaje.texto}</Aviso>}
       <div className="grid grid-main">
-        <Card titulo="Catálogo" subtitulo={`${catalogo.length} juegos · GET /juegos (cacheado)`} acciones={<Boton variante="ghost" onClick={cargar}>Recargar</Boton>}>
+        <Card titulo="Catálogo" subtitulo={`${catalogo.length} juegos disponibles`} acciones={<Boton variante="ghost" onClick={cargar}>Recargar</Boton>}>
           <div className="games">
             {catalogo.map((j) => (
               <TarjetaJuego key={j.id_juego} juego={j} poseido={poseidos.has(j.id_juego)} onComprar={comprar} settings={settings} />
@@ -168,8 +169,7 @@ export default function Tienda() {
         <span className="tag tag-gray">Aplicación</span>
         <h1>Tienda de juegos</h1>
         <p className="lead">
-          Cliente funcional de la API REST. Cada compra aplica la política de precios (patrón Strategy), se guarda en una transacción
-          (Compra + Copia) e invalida la biblioteca en Redis.
+          Explorá los juegos, elegí una política de precios y agregalos a tu biblioteca. La compra se confirma una vez que se completa correctamente.
         </p>
       </header>
       {settings && <Aviso>{settings.store_notice}</Aviso>}

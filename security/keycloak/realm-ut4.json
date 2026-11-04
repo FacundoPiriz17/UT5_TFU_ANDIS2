@@ -54,11 +54,23 @@
         "http://localhost:8000/docs/oauth2-redirect",
         "http://localhost:18000/docs/oauth2-redirect",
         "https://oauth.pstmn.io/v1/callback",
-        "https://oauth.pstmn.io/v1/browser-callback"
+        "https://oauth.pstmn.io/v1/browser-callback",
+        "http://localhost:8055/docs/oauth2-redirect",
+        "http://localhost:8056/docs/oauth2-redirect",
+        "http://localhost:8057/docs/oauth2-redirect",
+        "http://localhost:18055/docs/oauth2-redirect",
+        "http://localhost:18056/docs/oauth2-redirect",
+        "http://localhost:18057/docs/oauth2-redirect"
       ],
       "webOrigins": [
         "http://localhost:8000",
-        "http://localhost:18000"
+        "http://localhost:18000",
+        "http://localhost:8055",
+        "http://localhost:8056",
+        "http://localhost:8057",
+        "http://localhost:18055",
+        "http://localhost:18056",
+        "http://localhost:18057"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
@@ -93,11 +105,15 @@
       ],
       "redirectUris": [
         "http://localhost:3200/*",
-        "http://localhost:5173/*"
+        "http://localhost:5173/*",
+        "http://localhost:3255/*",
+        "http://localhost:13255/*"
       ],
       "webOrigins": [
         "http://localhost:3200",
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "http://localhost:3255",
+        "http://localhost:13255"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",

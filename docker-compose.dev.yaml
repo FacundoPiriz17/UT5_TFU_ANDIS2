@@ -1,18 +1,16 @@
-# Override: docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build
+# docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --build
 services:
-  api1:
-    image: ut4-segrend-api:dev
-    build:
-      args:
-        API_VERSION: dev
-        FORCE_UNHEALTHY: "false"
+  catalogo:
     volumes:
-      - .:/app
-      - audit_logs:/app/logs
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-  api2:
-    image: ut4-segrend-api:dev
+      - ./services/catalogo:/app/services/catalogo
+      - ./app:/app/app
+      - ./security:/app/security
+      - ./contracts:/app/contracts:ro
+    command: uvicorn services.catalogo.main:app --host 0.0.0.0 --port 8000 --reload
+  comercial:
     volumes:
-      - .:/app
-      - audit_logs:/app/logs
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - ./services/comercial:/app/services/comercial
+      - ./app:/app/app
+      - ./security:/app/security
+      - ./contracts:/app/contracts:ro
+    command: uvicorn services.comercial.main:app --host 0.0.0.0 --port 8000 --reload
