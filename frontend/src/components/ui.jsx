@@ -40,7 +40,7 @@ export function EncabezadoPatron({ id, atributo, children }) {
           <code key={a} className="file-chip">{a}</code>
         ))}
       </div>
-      <DiagramaPatron id={id} nombre={p.nombre} />
+      {!['deploy', 'cache', 'health', 'resilience', 'offloading', 'configuration'].includes(id) && <DiagramaPatron id={id} nombre={p.nombre} />}
     </header>
   );
 }

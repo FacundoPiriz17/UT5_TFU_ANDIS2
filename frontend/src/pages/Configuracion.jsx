@@ -38,7 +38,7 @@ export default function Configuracion() {
         if (!alive) return;
         if (configuration.ok) setObserved(configuration.data);
         if (result.ok) setQuote(result);
-        if (deployment.ok) setReplicas(deployment.data.slots);
+        if (deployment.ok) setReplicas(deployment.data.services);
       } finally { pending = false; }
     };
     read();
@@ -59,8 +59,8 @@ export default function Configuracion() {
           api('/deployment/status', { auth: false, silencioso: true }),
         ]);
         if (price.ok) setQuote(price);
-        if (deployment.ok) setReplicas(deployment.data.slots);
-        setMessage({ tipo: 'ok', text: 'JSON guardado. Las cuatro réplicas incorporan el cambio sin reinicio ni rebuild.' });
+        if (deployment.ok) setReplicas(deployment.data.services);
+        setMessage({ tipo: 'ok', text: 'JSON guardado. Los servicios incorporan el cambio sin reinicio ni rebuild.' });
       } else setMessage({ tipo: 'err', text: mensajeError(result) });
     } catch (error) { setMessage({ tipo: 'err', text: `No se pudo guardar: ${error.message}` }); }
     finally { setBusy(false); }
@@ -68,7 +68,7 @@ export default function Configuracion() {
 
   return <div className="page">
     <EncabezadoPatron id="configuration" atributo="Facilidad de modificación">
-      El comportamiento se obtiene de un JSON externo compartido por Blue y Green. Cada operación consulta la configuración validada;
+      El comportamiento se obtiene de un JSON externo compartido por Catálogo y Comercial. Cada operación consulta la configuración validada;
       modificar el archivo cambia descuentos, disponibilidad de compras y TTL sin reconstruir ni reiniciar las APIs.
     </EncabezadoPatron>
     {message && <Aviso tipo={message.tipo}>{message.text}</Aviso>}
@@ -94,21 +94,21 @@ export default function Configuracion() {
         <div className="kv"><span>TTL para nuevas entradas</span><b>{observed?.document.settings.cache_ttl_seconds ?? '—'} s</b></div>
         <div className="kv"><span>Mensaje de la tienda</span><b>{observed?.document.settings.store_notice}</b></div>
         <div className="kv"><span>Revisión</span><b>{observed?.document.revision ?? '—'}</b></div>
-        <p className="muted small">Responde {quote?.instancia ?? '—'} · {quote?.slot ?? '—'} v{quote?.version ?? '—'}. Las compras anteriores conservan su importe y las entradas de caché existentes conservan su TTL.</p>
+        <p className="muted small">Responde {quote?.instancia ?? '—'} · {quote?.version ?? '—'}. Las compras anteriores conservan su importe y las entradas de caché existentes conservan su TTL.</p>
       </Card>
     </div>
-    <Card titulo="Misma configuración en las cuatro réplicas" subtitulo="El hash permite verificar también cambios hechos directamente en el archivo">
-      <div className="table-scroll"><table className="table"><thead><tr><th>Color</th><th>Réplica</th><th>Versión</th><th>Proceso</th><th>Revisión</th><th>Hash del JSON</th></tr></thead>
-        <tbody>{Object.entries(replicas ?? {}).flatMap(([slot, rows]) => rows.map((row) => <tr key={row.host}>
-          <td>{slot}</td><td className="mono">{row.instance ?? row.host}</td><td>{row.version ?? '—'}</td><td>{row.process_id ?? '—'}</td>
+    <Card titulo="Misma configuración en ambos servicios" subtitulo="El hash permite verificar también cambios hechos directamente en el archivo">
+      <div className="table-scroll"><table className="table"><thead><tr><th>Servicio</th><th>Instancia</th><th>Versión</th><th>Proceso</th><th>Revisión</th><th>Hash del JSON</th></tr></thead>
+        <tbody>{(replicas ?? []).map((row) => <tr key={row.host}>
+          <td>{row.service}</td><td className="mono">{row.instance ?? row.host}</td><td>{row.version ?? '—'}</td><td>{row.process_id ?? '—'}</td>
           <td>{row.configuration_revision ?? '—'}</td><td className="mono">{row.configuration_hash?.slice(0, 16) ?? row.status}</td>
-        </tr>))}</tbody></table></div>
+        </tr>)}</tbody></table></div>
     </Card>
     <div className="grid grid-2">
       <Card titulo="Guion de demostración"><ComoFunciona items={[
         'Cambiar winter_discount_percent de 50 a 30: la cotización pasa de $50 a $70, con la misma versión de backend.',
         'Cambiar store_notice y abrir Tienda: el mensaje se actualiza. purchases_enabled=false rechaza nuevas compras en el backend.',
-        'Observar el mismo hash en Blue y Green. Los contenedores no se recrean al guardar.',
+        'Observar el mismo hash en ambos servicios. Los contenedores no se recrean al guardar.',
         'Intentar un porcentaje fuera de 0–100: el servidor rechaza la edición y conserva el JSON anterior.',
       ]} /></Card>
       <Card titulo="Editar también desde el host">

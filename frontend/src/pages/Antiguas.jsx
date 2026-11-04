@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api, mensajeError } from '../lib/api';
 import { useConfiguration } from '../lib/configuration';
+import { DEMOS_ANTIGUAS } from '../lib/patrones';
 import { Aviso, Boton, Card, Comando, ComoFunciona, Estado, Json, RequiereLogin, StatusHttp } from '../components/ui';
 
 const TITULOS = {
+  'ut4-blue-green': ['TFU4 · Patrones de arquitectura', 'Blue/Green del monolito'],
   'ut2-tacticas': ['UT2 · Tácticas de arquitectura', 'Strategy y auditoría'],
   'ut2-rollback': ['UT2 · Tácticas de arquitectura', 'Rollback de una imagen defectuosa'],
   'ut3-componentes': ['UT3 · Soluciones de arquitectura', 'Componentes, interfaces y contenedores'],
@@ -66,14 +68,14 @@ function Tacticas() {
       {quote && <Json data={quote} />}
     </Card>
     <Card titulo="Binding de auditoría mediante decorador">
-      <p>El aspecto <code>@auditar</code> registra operaciones y errores sin incorporar escritura de logs en cada servicio. El archivo se comparte entre réplicas y persiste en un volumen Docker.</p>
+      <p>El aspecto <code>@auditar</code> registra operaciones y errores. Esta demostración reutiliza el log persistente del servicio Comercial de UT5.</p>
       <RequiereLogin rol="admin"><div className="row gap-sm wrap">
         <Boton onClick={demonstrateAudit}>Generar operación auditada</Boton>
         <Boton variante="ghost" onClick={async () => setAudit(await api('/auditoria'))}>Leer auditoría</Boton>
       </div></RequiereLogin>
       {message && <Aviso>{message}</Aviso>}
       {audit && (audit.ok ? <Json data={audit.data.lineas?.join('\n')} /> : <Aviso tipo="err">{mensajeError(audit)}</Aviso>)}
-      <Comando>docker compose restart api1 api2</Comando>
+      <Comando>docker compose restart comercial</Comando>
       <p className="muted small">Después del reinicio, volver a leer el log para comprobar persistencia.</p>
     </Card>
   </>;
@@ -125,7 +127,56 @@ function RollbackMonitor() {
   </Card>;
 }
 
+const ENTORNO_ORIGINAL = {
+  'ut2-rollback': { ruta: 'ut2-rollback', comando: 'demo_rollback', descripcion: 'Reemplazo de una imagen defectuosa y restauración del backend anterior.' },
+  'ut3-balanceo': { ruta: 'ut3-balanceo', comando: 'demo_scaling', descripcion: 'Distribución de solicitudes entre réplicas del mismo backend monolítico.' },
+  'ut3-stateless': { ruta: 'ut3-stateless', comando: 'demo_stateless', descripcion: 'Validación de la misma identidad en varias réplicas, sin afinidad de sesión.' },
+  'ut3-acid': { ruta: 'ut3-acid', comando: 'demo_acid', descripcion: 'Confirmación de Compra y Copia y rollback ante una excepción forzada.' },
+  'ut4-blue-green': { ruta: 'deploy', comando: 'demo_blue_green', descripcion: 'Promoción de Blue a Green con dos versiones del backend completo.' },
+};
+
+function EntornoOriginal({ ruta = 'inicio' }) {
+  return <Card titulo="Abrir la versión original de TFU4">
+    <p>Estas demos utilizan las réplicas y los controles del monolito. El commit anterior conserva su aplicación, scripts y configuración.</p>
+    <details>
+      <summary>Preparar el entorno original</summary>
+      <p>Desde la raíz de UT5, crear una copia separada y ejecutar allí los comandos siguientes:</p>
+      <Comando>git worktree add --detach ../UT4_demos c51213f46f6a4eb2e0eab08c686297eebaf84531</Comando>
+      <Comando>cd ../UT4_demos</Comando>
+      <Comando>Copy-Item .env.example .env</Comando>
+      <Comando>docker compose -p ut4_demos up -d --build</Comando>
+      <p>Usa los puertos originales 3200, 8000 y 8081 y volúmenes del proyecto ut4_demos. Si ya tenés la versión original funcionando en esos puertos, podés abrirla directamente.</p>
+    </details>
+    <a className="btn btn-secondary" href={'http://localhost:3200/#/' + ruta} target="_blank" rel="noreferrer">Abrir demo en TFU4</a>
+  </Card>;
+}
+
+function IndiceAntiguas() {
+  return <div className="page">
+    <header className="pattern-head"><span className="tag tag-gray">TFU2 · TFU3 · TFU4</span><h1>Demos antiguas</h1>
+      <p className="lead">Demostraciones anteriores conservadas como referencia de la evolución de la aplicación.</p></header>
+    <Aviso>Health, Cache-Aside y CQRS también están en UT5: sus pantallas se adaptaron para mostrar servicios independientes, composición remota y consultas locales.</Aviso>
+    <div className="grid grid-3">{DEMOS_ANTIGUAS.map((grupo) => <Card key={grupo.unidad} titulo={grupo.unidad}>
+      {grupo.items.map(([id, nombre]) => <a key={id} href={'#/' + id}>{nombre}</a>)}
+    </Card>)}</div>
+    <EntornoOriginal />
+  </div>;
+}
+
 export default function Antiguas({ demo }) {
+  if (!demo) return <IndiceAntiguas />;
+  const original = ENTORNO_ORIGINAL[demo];
+  if (original) return <div className="page">
+    <header className="pattern-head"><span className="tag tag-gray">Demos antiguas · {TITULOS[demo][0]}</span>
+      <h1>{TITULOS[demo][1]}</h1><p className="lead">{original.descripcion}</p></header>
+    <EntornoOriginal ruta={original.ruta} />
+    <Card titulo="Ejecutar desde la copia TFU4">
+      <Comando>{'python scripts/manage.py ' + original.comando}</Comando>
+      <p>En TFU4 las réplicas contienen los mismos módulos. En UT5 Catálogo y Comercial tienen responsabilidades y despliegues distintos.</p>
+      <a href="#/deploy">Ver el despliegue independiente de UT5</a>
+      <a href="#/cqrs">Probar compras y consultas en UT5</a>
+    </Card>
+  </div>;
   const [unit, title] = TITULOS[demo];
   return <div className="page">
     <header className="pattern-head"><span className="tag tag-gray">Demos antiguas · {unit}</span><h1>{title}</h1>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { GRUPOS, PATRONES } from '../lib/patrones';
+import { DEMOS_ANTIGUAS, GRUPOS, PATRONES_UT5 } from '../lib/patrones';
 import { cerrarSesion, iniciarLogin, useSesion } from '../lib/auth';
 import { api } from '../lib/api';
 import RequestLog from './RequestLog';
@@ -9,23 +9,13 @@ const NAV_GENERAL = [
   { id: 'tienda', nombre: 'Tienda de juegos', icono: '🎮' },
 ];
 
-const ICONOS = { health: '♥', throttling: '⏱', cache: '⚡', cqrs: '⇄', identity: '🔑', offloading: '🛡', deploy: '🚀', configuration: '⚙' };
-const ANTIGUAS = [
-  { unidad: 'UT2 · Tácticas', items: [
-    ['ut2-tacticas', 'Strategy y auditoría'], ['ut2-rollback', 'Rollback'],
-  ] },
-  { unidad: 'UT3 · Soluciones', items: [
-    ['ut3-componentes', 'Componentes y contenedores'], ['ut3-balanceo', 'Escalabilidad horizontal'],
-    ['ut3-stateless', 'Servicios sin estado'], ['ut3-acid', 'Transacciones ACID'],
-  ] },
-];
-
+const ICONOS = { health: '♥', throttling: '⏱', cache: '⚡', cqrs: '⇄', identity: '🔑', offloading: '🛡', deploy: '🚀', configuration: '⚙', resilience: '↻' };
 function EstadoGateway() {
   const [estado, setEstado] = useState(null);
   useEffect(() => {
     let vivo = true;
     const consultar = async () => {
-      const r = await api('/health/live', { auth: false, silencioso: true });
+      const r = await api('/system/status', { auth: false, silencioso: true });
       if (vivo) setEstado(r.ok ? r.data : { status: 'down', instancias_activas: '0/2' });
     };
     consultar();
@@ -36,10 +26,10 @@ function EstadoGateway() {
   const s = estado?.status;
   const clase = s === 'ok' ? 'ok' : s === 'degraded' ? 'warn' : s ? 'err' : 'neutral';
   return (
-    <div className={`gw gw-${clase}`} title="Estado reportado por /health/live">
+    <div className={`gw gw-${clase}`} title="Estado reportado por /system/status">
       <span className="dot" />
       <span>{s ? `Sistema ${s === 'ok' ? 'operativo' : s === 'degraded' ? 'degradado' : 'caído'}` : 'Consultando…'}</span>
-      {estado && <span className="muted">· {estado.instancias_activas} réplicas</span>}
+      {estado && <span className="muted">· {estado.services?.filter((s) => s.status === 'ok').length ?? 0}/2 servicios</span>}
     </div>
   );
 }
@@ -70,6 +60,7 @@ function Usuario() {
 export default function Layout({ ruta, children }) {
   const [menu, setMenu] = useState(false);
   useEffect(() => setMenu(false), [ruta]);
+  const rutaAntigua = ruta === 'demos-antiguas' || DEMOS_ANTIGUAS.some((g) => g.items.some(([id]) => id === ruta));
 
   return (
     <div className="app">
@@ -77,8 +68,8 @@ export default function Layout({ ruta, children }) {
         <a className="brand" href="#/inicio">
           <span className="brand-logo">▲</span>
           <span>
-            <b>ANDIS · UT4</b>
-            <small>Patrones de arquitectura</small>
+            <b>ANDIS · UT5</b>
+            <small>Arquitectura basada en servicios</small>
           </span>
         </a>
         <nav>
@@ -88,23 +79,25 @@ export default function Layout({ ruta, children }) {
               <span className="nav-icon">{n.icono}</span>{n.nombre}
             </a>
           ))}
-          {Object.entries(GRUPOS).map(([gid, g]) => (
+          <div className="nav-section">Demostraciones UT5</div>
+          {Object.entries(GRUPOS).filter(([gid]) => PATRONES_UT5.some((p) => p.grupo === gid)).map(([gid, g]) => (
             <div key={gid}>
               <div className="nav-section"><span className={`nav-dot bg-${g.color}`} />{g.nombre}</div>
-              {PATRONES.filter((p) => p.grupo === gid).map((p) => (
+              {PATRONES_UT5.filter((p) => p.grupo === gid).map((p) => (
                 <a key={p.id} href={`#/${p.id}`} className={`nav-item ${ruta === p.id ? 'active' : ''}`}>
                   <span className="nav-icon">{ICONOS[p.id]}</span>{p.nombre}
                 </a>
               ))}
             </div>
           ))}
-          <details className="legacy-nav" open={ruta.startsWith('ut') || undefined}>
+          <details className="legacy-nav" open={rutaAntigua || undefined}>
             <summary className="nav-section">Demos antiguas</summary>
-            {ANTIGUAS.map((grupo) => (
+            <a href="#/demos-antiguas" className={'nav-item ' + (ruta === 'demos-antiguas' ? 'active' : '')}>Todas las demos anteriores</a>
+            {DEMOS_ANTIGUAS.map((grupo) => (
               <details key={grupo.unidad} open={grupo.items.some(([id]) => id === ruta) || undefined}>
                 <summary className="nav-section">{grupo.unidad}</summary>
                 {grupo.items.map(([id, nombre]) => (
-                  <a key={id} href={`#/${id}`} className={`nav-item ${ruta === id ? 'active' : ''}`}>{nombre}</a>
+                  <a key={id} href={'#/' + id} className={'nav-item ' + (ruta === id ? 'active' : '')}>{nombre}</a>
                 ))}
               </details>
             ))}

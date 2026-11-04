@@ -1,3 +1,4 @@
+"""Histórico UT4: estas demos no se incluyen en los entrypoints UT5."""
 """Demos heredadas: acciones acotadas, con autorización administrativa."""
 import subprocess
 import sys

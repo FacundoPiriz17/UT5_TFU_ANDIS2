@@ -2,7 +2,7 @@
 // (Authorization Code + PKCE) y solo guarda el access token emitido por el IdP.
 import { useSyncExternalStore } from 'react';
 
-export const KEYCLOAK_URL = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8081';
+export const KEYCLOAK_URL = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8155';
 export const REALM = import.meta.env.VITE_KEYCLOAK_REALM || 'andis-ut4';
 export const CLIENT_ID = import.meta.env.VITE_KEYCLOAK_CLIENT || 'andis-frontend';
 const OIDC = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect`;

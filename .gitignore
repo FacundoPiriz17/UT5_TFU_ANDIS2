@@ -94,6 +94,3 @@ Desktop.ini
 node_modules/
 config/*.lock
 .tmp/
-!evidence/ut5-integration.log
-!evidence/ut5-deployment-build.log
-!evidence/ut4-deployment-build.log

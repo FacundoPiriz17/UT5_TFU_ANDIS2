@@ -1,0 +1,5 @@
+-r ../../requirements.txt
+zeep==4.3.1
+httpx==0.28.1
+lxml==6.0.2
+requests==2.32.5

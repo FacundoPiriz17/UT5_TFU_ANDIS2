@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="urn:andis:catalogo:v1" targetNamespace="urn:andis:catalogo:v1"
+           elementFormDefault="qualified">
+  <xs:simpleType name="IdJuego"><xs:restriction base="xs:int"><xs:minInclusive value="1"/></xs:restriction></xs:simpleType>
+  <xs:complexType name="Juego">
+    <xs:sequence>
+      <xs:element name="id_juego" type="tns:IdJuego"/>
+      <xs:element name="nombre" type="xs:string"/>
+      <xs:element name="generos"><xs:complexType><xs:sequence>
+        <xs:element name="genero" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence></xs:complexType></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ObtenerJuego"><xs:complexType><xs:sequence>
+    <xs:element name="id_juego" type="tns:IdJuego"/>
+  </xs:sequence></xs:complexType></xs:element>
+  <xs:element name="ObtenerJuegoResponse"><xs:complexType><xs:sequence>
+    <xs:element name="juego" type="tns:Juego"/>
+  </xs:sequence></xs:complexType></xs:element>
+  <xs:element name="ObtenerJuegos"><xs:complexType><xs:sequence>
+    <xs:element name="id_juego" type="tns:IdJuego" minOccurs="1" maxOccurs="200"/>
+  </xs:sequence></xs:complexType></xs:element>
+  <xs:element name="ObtenerJuegosResponse"><xs:complexType><xs:sequence>
+    <xs:element name="juego" type="tns:Juego" minOccurs="0" maxOccurs="200"/>
+  </xs:sequence></xs:complexType></xs:element>
+  <xs:element name="ErrorCatalogo"><xs:complexType><xs:sequence>
+    <xs:element name="codigo" type="xs:string"/>
+    <xs:element name="mensaje" type="xs:string"/>
+  </xs:sequence></xs:complexType></xs:element>
+</xs:schema>

@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/FacundoPiriz17/UT5_TFU_ANDIS2",
+  "commit": "c51213f46f6a4eb2e0eab08c686297eebaf84531",
+  "architecture": "Monolito modular con replicas Blue/Green, MySQL compartido",
+  "frontend_url": "http://localhost:3200",
+  "reference_ut4": "https://github.com/FacundoPiriz17/UT4_TFU_ANDIS2"
+}

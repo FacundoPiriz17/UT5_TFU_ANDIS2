@@ -1,0 +1,9 @@
+# Opcional: permite demostrar latencia y fallos sin modificar los datos.
+# docker compose -f docker-compose.yaml -f docker-compose.demo.yaml up -d --no-deps catalogo
+services:
+  catalogo:
+    environment:
+      UT5_DEMO_MODE: 'true'
+      CATALOGO_FAULT_FILE: /app/demo/faults.json
+    volumes:
+      - ./config/demo-faults.json:/app/demo/faults.json:ro

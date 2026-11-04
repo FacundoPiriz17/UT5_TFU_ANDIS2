@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:andis:catalogo:v1"
+ targetNamespace="urn:andis:catalogo:v1" name="Catalogo">
+ <wsdl:types><xs:schema><xs:import namespace="urn:andis:catalogo:v1" schemaLocation="catalogo-v1.xsd"/></xs:schema></wsdl:types>
+ <wsdl:message name="ObtenerJuegoInput"><wsdl:part name="parameters" element="tns:ObtenerJuego"/></wsdl:message>
+ <wsdl:message name="ObtenerJuegoOutput"><wsdl:part name="parameters" element="tns:ObtenerJuegoResponse"/></wsdl:message>
+ <wsdl:message name="ObtenerJuegosInput"><wsdl:part name="parameters" element="tns:ObtenerJuegos"/></wsdl:message>
+ <wsdl:message name="ObtenerJuegosOutput"><wsdl:part name="parameters" element="tns:ObtenerJuegosResponse"/></wsdl:message>
+ <wsdl:message name="ErrorCatalogo"><wsdl:part name="fault" element="tns:ErrorCatalogo"/></wsdl:message>
+ <wsdl:portType name="CatalogoPortType">
+  <wsdl:operation name="ObtenerJuego"><wsdl:input message="tns:ObtenerJuegoInput"/><wsdl:output message="tns:ObtenerJuegoOutput"/><wsdl:fault name="ErrorCatalogo" message="tns:ErrorCatalogo"/></wsdl:operation>
+  <wsdl:operation name="ObtenerJuegos"><wsdl:input message="tns:ObtenerJuegosInput"/><wsdl:output message="tns:ObtenerJuegosOutput"/><wsdl:fault name="ErrorCatalogo" message="tns:ErrorCatalogo"/></wsdl:operation>
+ </wsdl:portType>
+ <wsdl:binding name="CatalogoSoapBinding" type="tns:CatalogoPortType">
+  <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  <wsdl:operation name="ObtenerJuego"><soap:operation soapAction="urn:andis:catalogo:v1/ObtenerJuego"/>
+   <wsdl:input><soap:body use="literal"/></wsdl:input><wsdl:output><soap:body use="literal"/></wsdl:output>
+   <wsdl:fault name="ErrorCatalogo"><soap:fault name="ErrorCatalogo" use="literal"/></wsdl:fault>
+  </wsdl:operation>
+  <wsdl:operation name="ObtenerJuegos"><soap:operation soapAction="urn:andis:catalogo:v1/ObtenerJuegos"/>
+   <wsdl:input><soap:body use="literal"/></wsdl:input><wsdl:output><soap:body use="literal"/></wsdl:output>
+   <wsdl:fault name="ErrorCatalogo"><soap:fault name="ErrorCatalogo" use="literal"/></wsdl:fault>
+  </wsdl:operation>
+ </wsdl:binding>
+ <wsdl:service name="CatalogoService"><wsdl:port name="CatalogoPort" binding="tns:CatalogoSoapBinding">
+  <soap:address location="http://localhost:8055/soap/catalogo"/>
+ </wsdl:port></wsdl:service>
+</wsdl:definitions>
